@@ -14,6 +14,7 @@ profile: null # min, basic, moderate,safety, shared, production
 # Mock modules or roles in order to pass ansible-playbook --syntax-check
 mock_modules:
   - mount
+  - ansible.builtin.modprobe
 
 
 # exclude_paths included in this file are parsed relative to this file's location
