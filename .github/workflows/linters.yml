@@ -49,4 +49,4 @@ jobs:
          uses: igabaydulin/helm-check-action@0.2.1
          env:
            CHART_LOCATION: ./helm-chart-microservices
-           CHART_VALUES: ./helm-chart-microservices/values.yaml"  # Added closing quotation mark
+           CHART_VALUES: ./helm-chart-microservices/values.yaml
