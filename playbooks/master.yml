@@ -1,0 +1,62 @@
+- name: Initialize Master Node
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Initialize Kubernetes control plane
+      ansible.builtin.command:
+        cmd: >
+          kubeadm init
+          --apiserver-advertise-address={{ node_ip }}
+          --control-plane-endpoint {{ node_ip }}
+          --pod-network-cidr={{ pod_network_cidr }}
+          --ignore-preflight-errors=NumCPU
+          --cri-socket=unix:///run/containerd/containerd.sock
+          --v=5
+
+    - name: Ensure the .kube directory exists
+      file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+        mode: '0700'
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+
+    - name: Copy Kubernetes admin configuration to .kube directory
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0600'
+        remote_src: true
+
+    - name: Set ownership of the Kubernetes config file
+      file:
+        path: "{{ ansible_env.HOME }}/.kube/config"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0600'
+
+    - name: Install calico pod network
+      ansible.builtin.command: "{{ item }}"
+      with_items:
+        - kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/tigera-operator.yaml
+        - kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/custom-resources.yaml
+
+    - name: Get worker node join command
+      ansible.builtin.shell:
+        cmd: |
+          kubeadm token create --print-join-command >> /tmp/kubeadm-join.sh
+
+    - name: Fetch the kubeadm join command to the local machine
+      fetch:
+        src: /tmp/kubeadm-join.sh
+        dest: ./output/kubeadm-join.sh
+        flat: true
+
+    - name: Save admin.conf to local machine
+      fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: ./output/admin.conf
+        flat: true

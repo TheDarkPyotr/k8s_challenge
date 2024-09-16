@@ -103,7 +103,7 @@
         enabled: yes
         state: restarted
 
-    - name: Reload sysctl to apply new network configuration
+    - name: Reload sysctl
       command: sysctl --system
 
 
@@ -143,3 +143,4 @@
         name: kubelet
         daemon_reload: yes
         state: started
+
