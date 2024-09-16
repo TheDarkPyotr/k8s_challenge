@@ -1,0 +1,24 @@
+---
+# .ansible-lint
+
+profile: null # min, basic, moderate,safety, shared, production
+
+# Allows dumping of results in SARIF format
+# sarif_file: result.sarif
+
+# parseable: true
+# quiet: true
+# strict: true
+# verbosity: 1
+
+# Mock modules or roles in order to pass ansible-playbook --syntax-check
+mock_modules:
+  - mount
+
+
+# exclude_paths included in this file are parsed relative to this file's location
+# and not relative to the CWD of execution. CLI arguments passed to the --exclude
+# option are parsed relative to the CWD of execution.
+exclude_paths:
+  - .github/
+  - .config/
