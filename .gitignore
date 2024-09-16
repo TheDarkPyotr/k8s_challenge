@@ -1,0 +1,14 @@
+# Ignore Vagrant box files
+.vagrant/
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Ignore Ansible cache and logs
+*.retry
+
+# Ignore local playbook output
+playbooks/output/
+
