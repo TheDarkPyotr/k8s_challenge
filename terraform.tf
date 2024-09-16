@@ -114,3 +114,36 @@ resource "kubernetes_job" "kubescape_security_benchmark" {
     update = "2m"
   }
 }
+
+data "kubernetes_pod" "kubescape_job_pod" {
+  metadata {
+    name      = kubernetes_job.kubescape_security_benchmark.metadata[0].name
+    namespace = kubernetes_job.kubescape_security_benchmark.metadata[0].namespace
+  }
+}
+
+output "kubescape_job_pod" {
+  value = data.kubernetes_pod.kubescape_job_pod.metadata[0].name
+}
+
+resource "helm_release" "microservices-chart" {
+
+  name  = "example-app-${terraform.workspace}"
+  namespace  = kubernetes_namespace.kiratech-test.metadata[0].name
+
+  # Path to the local Helm chart
+  chart = "./helm-chart-microservices"
+  force_update = true  
+  recreate_pods = true
+
+  # Maximum timeout for the deployment
+  timeout = "600"
+
+  # Wait for the previous job to complete before deploying the Helm chart
+  depends_on = [kubernetes_job.kubescape_security_benchmark]
+
+}
+
+output "microservices-chart" {
+  value = helm_release.microservices-chart.metadata[0].name
+}

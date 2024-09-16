@@ -1,0 +1,169 @@
+images:
+  repository: gcr.io/google-samples/microservices-demo
+  tag: v0.9.0
+
+frontend:
+  name: frontend
+  replicas: 3
+  service:
+    type: NodePort
+    ports:
+      name: http
+      sourcePort: 80
+      targetPort: 8080
+      nodePort: 30927
+
+
+emailService:
+  name: emailservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits: 
+      cpu: 200m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 5000
+      targetPort: 8080
+
+productCatalogService:
+  name: productcatalogservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 3550
+      targetPort: 3550
+
+currencyService:
+  name: currencyservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 7000
+      targetPort: 7000
+
+cartService:
+  name: cartservice
+  resources:
+    requests:
+      cpu: 200m
+      memory: 64Mi
+    limits:
+      cpu: 300m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 7070
+      targetPort: 7070
+
+recommendationService:
+  name: recommendationservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 220Mi
+    limits:
+      cpu: 200m
+      memory: 450Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 8080
+      targetPort: 8080 
+
+shippingService:
+  name: shippingservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 50051
+      targetPort: 50051  
+
+checkoutService:
+  name: checkoutservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  service:  
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 5050
+      targetPort: 5050   
+
+adService:
+  name: adservice
+  resources:
+    requests:
+      cpu: 200m
+      memory: 180Mi
+    limits:
+      cpu: 300m
+      memory: 300Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 9555
+      targetPort: 9555  
+
+paymentService:
+  name: paymentservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    ports:
+      name: grpc
+      sourcePort: 50051
+      targetPort: 50051 
+
+loadGenerator:
+  name: loadgenerator
+  resources:
+    requests:
+      cpu: 300m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

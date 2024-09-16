@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.shippingService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.shippingService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.shippingService.name }}
+    spec:
+      serviceAccountName: default
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.shippingService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: 50051
+        env:
+        - name: PORT
+          value: "50051"
+        - name: DISABLE_PROFILER
+          value: "1"
+        readinessProbe:
+          periodSeconds: 5
+          grpc:
+            port: 50051
+        livenessProbe:
+          grpc:
+            port: 50051
+        resources:
+          requests:
+            cpu: {{ .Values.shippingService.resources.requests.cpu }}
+            memory: {{ .Values.shippingService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.shippingService.resources.limits.cpu }}
+            memory: {{ .Values.shippingService.resources.limits.memory }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.shippingService.name }}
+spec:
+  type: {{ .Values.shippingService.service.type }}
+  selector:
+    app: {{ .Values.shippingService.name }}
+  ports:
+  - name: {{ .Values.shippingService.service.ports.name }}
+    port: {{ .Values.shippingService.service.ports.sourcePort }}
+    targetPort: {{ .Values.shippingService.service.ports.targetPort }}

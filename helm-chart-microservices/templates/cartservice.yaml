@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.cartService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.cartService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.cartService.name }}
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.cartService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: 7070
+        env:
+        - name: REDIS_ADDR
+          value: "redis-cart:6379"
+        resources:
+          requests:
+            cpu: {{ .Values.cartService.resources.requests.cpu }}
+            memory: {{ .Values.cartService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.cartService.resources.limits.cpu }}
+            memory: {{ .Values.cartService.resources.limits.memory }}
+        readinessProbe:
+          initialDelaySeconds: 15
+          grpc:
+            port: 7070
+        livenessProbe:
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          grpc:
+            port: 7070
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.cartService.name }}
+spec:
+  type: {{ .Values.cartService.service.type }}
+  selector:
+    app: {{ .Values.cartService.name }}
+  ports:
+  - name: {{ .Values.cartService.service.ports.name }}
+    port: {{ .Values.cartService.service.ports.sourcePort }}
+    targetPort: {{ .Values.cartService.service.ports.targetPort }}

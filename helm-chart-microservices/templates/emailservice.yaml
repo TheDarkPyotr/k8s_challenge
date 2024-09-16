@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.emailService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.emailService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.emailService.name }}
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.emailService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: {{ .Values.emailService.service.ports.targetPort}}
+        env:
+        - name: PORT
+          value: "{{ .Values.emailService.service.ports.targetPort}}"
+        - name: DISABLE_PROFILER
+          value: "1"
+        readinessProbe:
+          periodSeconds: 5
+          grpc:
+            port: {{ .Values.emailService.service.ports.targetPort}}
+        livenessProbe:
+          periodSeconds: 5
+          grpc:
+            port: {{ .Values.emailService.service.ports.targetPort}}
+        resources:
+          requests:
+            cpu: {{ .Values.emailService.resources.requests.cpu }}
+            memory: {{ .Values.emailService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.emailService.resources.limits.cpu }}
+            memory: {{ .Values.emailService.resources.limits.memory }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.emailService.name }}
+spec:
+  type: {{ .Values.emailService.service.type }}
+  selector:
+    app: {{ .Values.emailService.name }}
+  ports:
+  - name: {{ .Values.emailService.service.ports.name }}
+    port: {{ .Values.emailService.service.ports.sourcePort }}
+    targetPort: {{ .Values.emailService.service.ports.targetPort }}

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.loadGenerator.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.loadGenerator.name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.loadGenerator.name }}
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      initContainers:
+      - command:
+        - /bin/sh
+        - -exc
+        - |
+          echo "Init container pinging frontend: ${FRONTEND_ADDR}..."
+          STATUSCODE=$(wget --server-response http://${FRONTEND_ADDR} 2>&1 | awk '/^  HTTP/{print $2}')
+          if test $STATUSCODE -ne 200; then
+              echo "Error: Could not reach frontend - Status code: ${STATUSCODE}"
+              exit 1
+          fi
+        name: frontend-check
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: busybox:latest
+        env:
+        - name: FRONTEND_ADDR
+          value: "{{ .Values.frontend.name }}:80"
+      containers:
+      - name: main
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.loadGenerator.name }}:{{ .Values.images.tag }}"
+        env:
+        - name: FRONTEND_ADDR
+          value: "{{ .Values.frontend.name }}:80"
+        - name: USERS
+          value: "10"
+        resources:
+          requests:
+            cpu: {{ .Values.loadGenerator.resources.requests.cpu }}
+            memory: {{ .Values.loadGenerator.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.loadGenerator.resources.limits.cpu }}
+            memory: {{ .Values.loadGenerator.resources.limits.memory }}

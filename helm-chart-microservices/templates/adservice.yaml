@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.adService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.adService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.adService.name }}
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.adService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: {{ .Values.adService.service.ports.targetPort }}
+        env:
+        - name: PORT
+          value: "{{ .Values.adService.service.ports.targetPort }}"
+        resources:
+          requests:
+            cpu: {{ .Values.adService.resources.requests.cpu }}
+            memory: {{ .Values.adService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.adService.resources.limits.cpu }}
+            memory: {{ .Values.adService.resources.limits.memory }}
+        readinessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          grpc:
+            port: {{ .Values.adService.service.ports.targetPort }}
+        livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          grpc:
+            port: {{ .Values.adService.service.ports.targetPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.adService.name }}
+spec:
+  type: {{ .Values.adService.service.type }}
+  selector:
+    app: {{ .Values.adService.name }}
+  ports:
+  - name: {{ .Values.adService.service.ports.name }}
+    port: {{ .Values.adService.service.ports.sourcePort }}
+    targetPort: {{ .Values.adService.service.ports.targetPort }}

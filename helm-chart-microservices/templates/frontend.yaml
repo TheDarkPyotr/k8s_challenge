@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 2    
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.frontend.name }}
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      serviceAccountName: default
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: "{{ .Values.images.repository }}/{{ .Values.frontend.name }}:{{ .Values.images.tag }}"
+          ports:
+          - containerPort: {{ .Values.frontend.service.ports.targetPort }}
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: {{ .Values.frontend.service.ports.targetPort }}
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: {{ .Values.frontend.service.ports.targetPort }}
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-liveness-probe"
+          env:
+          - name: PORT
+            value: "8080"
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: "{{ .Values.productCatalogService.name }}:{{ .Values.productCatalogService.service.ports.targetPort}}"
+          - name: CURRENCY_SERVICE_ADDR
+            value: "{{ .Values.currencyService.name }}:{{ .Values.currencyService.service.ports.targetPort}}"
+          - name: CART_SERVICE_ADDR
+            value: "{{ .Values.cartService.name }}:{{ .Values.cartService.service.ports.targetPort}}"
+          - name: RECOMMENDATION_SERVICE_ADDR
+            value: "{{ .Values.recommendationService.name }}:{{ .Values.recommendationService.service.ports.targetPort}}"
+          - name: SHIPPING_SERVICE_ADDR
+            value: "{{ .Values.shippingService.name }}:{{ .Values.shippingService.service.ports.targetPort}}"
+          - name: CHECKOUT_SERVICE_ADDR
+            value: "{{ .Values.checkoutService.name }}:{{ .Values.checkoutService.service.ports.targetPort}}"
+          - name: AD_SERVICE_ADDR
+            value: "{{ .Values.adService.name }}:{{ .Values.adService.service.ports.targetPort}}"
+          - name: ENABLE_PROFILER
+            value: "0"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.frontend.name }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector:
+    app: {{ .Values.frontend.name }}
+  ports:
+  - name: {{ .Values.frontend.service.ports.name }}
+    port: {{ .Values.frontend.service.ports.sourcePort }}
+    targetPort: {{ .Values.frontend.service.ports.targetPort }}
+    nodePort: {{ .Values.frontend.service.ports.nodePort }}

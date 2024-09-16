@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.productCatalogService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.productCatalogService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.productCatalogService.name }}
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.productCatalogService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: 3550
+        env:
+        - name: PORT
+          value: "3550"
+        - name: DISABLE_PROFILER
+          value: "1"
+        readinessProbe:
+          grpc:
+            port: 3550
+        livenessProbe:
+          grpc:
+            port: 3550
+        resources:
+          requests:
+            cpu: {{ .Values.productCatalogService.resources.requests.cpu }}
+            memory: {{ .Values.productCatalogService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.productCatalogService.resources.limits.cpu }}
+            memory: {{ .Values.productCatalogService.resources.limits.memory }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.productCatalogService.name }}
+spec:
+  type: {{ .Values.productCatalogService.service.type }}
+  selector:
+    app: {{ .Values.productCatalogService.name }}
+  ports:
+  - name: {{ .Values.productCatalogService.service.ports.name }}
+    port: {{ .Values.productCatalogService.service.ports.sourcePort }}
+    targetPort: {{ .Values.productCatalogService.service.ports.targetPort }}

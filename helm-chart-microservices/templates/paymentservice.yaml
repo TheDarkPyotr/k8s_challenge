@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.paymentService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.paymentService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.paymentService.name }}
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.images.repository }}/{{ .Values.paymentService.name }}:{{ .Values.images.tag }}"
+        ports:
+        - containerPort: 50051
+        env:
+        - name: PORT
+          value: "50051"
+        - name: DISABLE_PROFILER
+          value: "1"
+        readinessProbe:
+          grpc:
+            port: 50051
+        livenessProbe:
+          grpc:
+            port: 50051
+        resources:
+          requests:
+            cpu: {{ .Values.paymentService.resources.requests.cpu }}
+            memory: {{ .Values.paymentService.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.paymentService.resources.limits.cpu }}
+            memory: {{ .Values.paymentService.resources.limits.memory }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.paymentService.name }}
+spec:
+  type: {{ .Values.paymentService.service.type }}
+  selector:
+    app: {{ .Values.paymentService.name }}
+  ports:
+  - name: {{ .Values.paymentService.service.ports.name }}
+    port: {{ .Values.paymentService.service.ports.sourcePort }}
+    targetPort: {{ .Values.paymentService.service.ports.targetPort }}

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.checkoutService.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.checkoutService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.checkoutService.name }}
+    spec:
+      serviceAccountName: default
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: "{{ .Values.images.repository }}/{{ .Values.checkoutService.name }}:{{ .Values.images.tag }}"
+          ports:
+          - containerPort: 5050
+          readinessProbe:
+            grpc:
+              port: 5050
+          livenessProbe:
+            grpc:
+              port: 5050
+          env:
+          - name: PORT
+            value: "5050"
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: "{{ .Values.productCatalogService.name }}:3550"
+          - name: SHIPPING_SERVICE_ADDR
+            value: "{{ .Values.shippingService.name }}:50051"
+          - name: PAYMENT_SERVICE_ADDR
+            value: "{{ .Values.paymentService.name }}:50051"
+          - name: EMAIL_SERVICE_ADDR
+            value: "{{ .Values.emailService.name }}:5000"
+          - name: CURRENCY_SERVICE_ADDR
+            value: "{{ .Values.currencyService.name }}:7000"
+          - name: CART_SERVICE_ADDR
+            value: "{{ .Values.cartService.name }}:7070"
+          resources:
+            requests:
+              cpu: {{ .Values.checkoutService.resources.requests.cpu }}
+              memory: {{ .Values.checkoutService.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.checkoutService.resources.limits.cpu }}
+              memory: {{ .Values.checkoutService.resources.limits.memory }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.checkoutService.name }}
+spec:
+  type: {{ .Values.checkoutService.service.type }}
+  selector:
+    app: {{ .Values.checkoutService.name }}
+  ports:
+  - name: {{ .Values.checkoutService.service.ports.name }}
+    port: {{ .Values.checkoutService.service.ports.sourcePort }}
+    targetPort: {{ .Values.checkoutService.service.ports.targetPort }}
