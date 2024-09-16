@@ -108,5 +108,9 @@ resource "kubernetes_job" "kubescape_security_benchmark" {
       }
     }
   }
-
+  wait_for_completion = true
+  timeouts {
+    create = "2m"
+    update = "2m"
+  }
 }
