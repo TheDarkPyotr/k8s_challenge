@@ -17,7 +17,7 @@
         - none
 
     - name: Disable swap
-      command: swapoff -a
+      ansible.builtin.command: swapoff -a
 
     - name: Remove Docker and related packages
       apt:
@@ -104,7 +104,7 @@
         state: restarted
 
     - name: Reload sysctl
-      command: sysctl --system
+      ansible.builtin.command: sysctl --system
 
 
     - name: Get Kubernetes package key

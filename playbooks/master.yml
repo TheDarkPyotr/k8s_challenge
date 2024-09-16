@@ -15,7 +15,7 @@
           --v=5
 
     - name: Ensure the .kube directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ ansible_env.HOME }}/.kube"
         state: directory
         mode: '0700'
@@ -23,7 +23,7 @@
         group: "{{ ansible_user_gid }}"
 
     - name: Copy Kubernetes admin configuration to .kube directory
-      copy:
+      ansible.builtin.copy:
         src: /etc/kubernetes/admin.conf
         dest: "{{ ansible_env.HOME }}/.kube/config"
         owner: "{{ ansible_user_id }}"
@@ -32,7 +32,7 @@
         remote_src: true
 
     - name: Set ownership of the Kubernetes config file
-      file:
+      ansible.builtin.file:
         path: "{{ ansible_env.HOME }}/.kube/config"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
@@ -50,13 +50,13 @@
           kubeadm token create --print-join-command >> /tmp/kubeadm-join.sh
 
     - name: Fetch the kubeadm join command to the local machine
-      fetch:
+      ansible.builtin.fetch:
         src: /tmp/kubeadm-join.sh
         dest: ./output/kubeadm-join.sh
         flat: true
 
     - name: Save admin.conf to local machine
-      fetch:
+      ansible.builtin.fetch:
         src: /etc/kubernetes/admin.conf
         dest: ./output/admin.conf
         flat: true
