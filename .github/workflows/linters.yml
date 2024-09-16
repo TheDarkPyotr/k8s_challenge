@@ -41,12 +41,12 @@ jobs:
       - name: Run TFLint
         run: tflint -f compact
 
-#  helm-check:  # Indented the same level as other jobs
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@master
-#      - name: Helm Check
-#        uses: igabaydulin/helm-check-action@0.2.1
-#        env:
-#          CHART_LOCATION: ./helm-check-action-sample
-#          CHART_VALUES: ./helm-check-action-sample/values/test.yaml"  # Added closing quotation mark
+  helm-check:  # Indented the same level as other jobs
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@master
+       - name: Helm Check
+         uses: igabaydulin/helm-check-action@0.2.1
+         env:
+           CHART_LOCATION: ./helm-chart-microservices
+           CHART_VALUES: ./helm-chart-microservices/values.yaml"  # Added closing quotation mark
