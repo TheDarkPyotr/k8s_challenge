@@ -52,7 +52,7 @@ After all the workers have finished executing the playbooks, joining the cluster
 terraform plan
 terraform apply
 ```
-to execute the Kubernetes Cluster Provision. 
+to execute the Kubernetes Cluster Provision. Reach the web interface at `http://node_ip:30927`. 
 
 
 To cleanup:
