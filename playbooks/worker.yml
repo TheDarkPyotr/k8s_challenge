@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Configure Worker Nodes
+  hosts: all
   become: true
   tasks:
     - name: Copy join command to worker node
