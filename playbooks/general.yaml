@@ -57,7 +57,7 @@
 
     - name: Update apt cache after adding Docker repository
       apt:
-        update_cache: yes
+        update_cache: true
 
     - name: Install containerd
       apt:
@@ -100,7 +100,7 @@
     - name: Enable and restart Containerd service
       ansible.builtin.systemd:
         name: containerd
-        enabled: yes
+        enabled: true
         state: restarted
 
     - name: Reload sysctl
@@ -119,13 +119,13 @@
 
     - name: Update apt cache
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
 
     - name: Install Kubernetes binaries
       apt:
         name: "{{ packages }}"
         state: present
-        update_cache: yes
+        update_cache: true
       vars:
         packages:
           - kubelet 
@@ -136,11 +136,11 @@
       lineinfile:
         path: /etc/default/kubelet
         line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
-        create: yes
+        create: true
 
     - name: Restart kubelet
       service:
         name: kubelet
-        daemon_reload: yes
+        daemon_reload: true
         state: started
 

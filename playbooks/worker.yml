@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Copy join command to worker node
+      copy:
+        src: ./output/kubeadm-join.sh
+        dest: /tmp/kubeadm-join.sh
+        owner: root
+        group: root
+        mode: "0777"
+
+    - name: Add worker node to the cluster
+      command: sh /tmp/kubeadm-join.sh
