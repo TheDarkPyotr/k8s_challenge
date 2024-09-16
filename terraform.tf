@@ -1,3 +1,18 @@
+terraform {
+  required_version = ">= 1.6" 
+
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.15"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.9"
+    }
+  }
+}
+
 provider "kubernetes" {
   config_context_cluster = "kubernetes"
   config_path = "./playbooks/output/admin.conf"
